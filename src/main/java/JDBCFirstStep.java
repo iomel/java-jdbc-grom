@@ -7,7 +7,7 @@ public class JDBCFirstStep {
     private static final String USER = "main";
     private static final String PASS = "AWS_Admin";
 
-    public static ResultSet jdbcStart(){
+    public ResultSet jdbcStart(){
         ResultSet result = null;
         try(Connection connection = DriverManager.getConnection(DB_URL, USER, PASS);
             Statement statement = connection.createStatement()) {
@@ -16,8 +16,9 @@ public class JDBCFirstStep {
             } catch (ClassNotFoundException e) {
                 System.out.println("Class " + JDBC_DRIVER + " not found");
             }
-            try (ResultSet resultSet = statement.executeQuery("SELECT * FROM Test ")) {
+            try (ResultSet resultSet = statement.executeQuery("SELECT * FROM PRODUCTS ")) {
                 result = resultSet;
+
             }
         } catch (SQLException e) {
             System.err.println("Something went wrong");
