@@ -16,9 +16,8 @@ public class JDBCFirstStep {
             } catch (ClassNotFoundException e) {
                 System.out.println("Class " + JDBC_DRIVER + " not found");
             }
-            try (ResultSet resultSet = statement.executeQuery("SELECT * FROM PRODUCTS ")) {
+            try (ResultSet resultSet = statement.executeQuery("SELECT * FROM Test")) {
                 result = resultSet;
-
             }
         } catch (SQLException e) {
             System.err.println("Something went wrong");
