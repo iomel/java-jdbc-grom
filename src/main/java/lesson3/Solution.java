@@ -12,7 +12,7 @@ public class Solution {
     public List<Product> findProductsByPrice(int price, int delta){
         ArrayList<Product> products = new ArrayList<>();
         try(Connection connection = getConnection();
-            PreparedStatement statement = connection.prepareStatement("SELECT * FROM PRODUCT WHERE PRICE >= ? AND =< ?")) {
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM PRODUCT WHERE PRICE >= ? AND PRICE <=?")) {
             statement.setInt(1, price-delta);
             statement.setInt(2, price+delta);
             ResultSet resultSet = statement.executeQuery();
@@ -25,11 +25,12 @@ public class Solution {
         return products;
     }
 
-    public List<Product> findProductsByName(String word) {
+    public List<Product> findProductsByName(String word) throws Exception{
         ArrayList<Product> products = new ArrayList<>();
+        validateWord(word);
         try(Connection connection = getConnection();
-            PreparedStatement statement = connection.prepareStatement("SELECT * FROM PRODUCT WHERE NAME LIKE %?%")) {
-            statement.setString(1, word);
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM PRODUCT WHERE NAME LIKE ?")) {
+            statement.setString(1, "%"+word+"%");
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next())
                 products.add(createProduct(resultSet));
@@ -43,8 +44,9 @@ public class Solution {
     public List<Product> findProductsWithEmptyDescription() {
         ArrayList<Product> products = new ArrayList<>();
         try(Connection connection = getConnection();
-            Statement statement = connection.createStatement()) {
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM PRODUCT WHERE DESCRIPTION = ''");
+            PreparedStatement statement = connection.prepareStatement(
+                    "SELECT * FROM PRODUCT WHERE DESCRIPTION IS NULL")) {
+            ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()){
                 products.add(createProduct(resultSet));
             }
@@ -65,5 +67,13 @@ public class Solution {
         String description = resultSet.getString(3);
         int price = resultSet.getInt(4);
         return new Product(id, name, description, price);
+    }
+
+    private void validateWord(String word) throws Exception {
+        for (char c : word.toCharArray())
+            if(!Character.isAlphabetic(c))
+                throw new Exception("Word contain wrong symbols! " + word);
+        if (word.length() < 3)
+            throw new Exception("Word is too short! " + word);
     }
 }
