@@ -3,7 +3,7 @@ package lesson3;
 public class Demo {
     public static void main(String[] args) throws Exception{
 
-        ProductDAO productDAO = new ProductDAO();
+//        ProductDAO productDAO = new ProductDAO();
         Solution solution = new Solution();
 
 //        Product product1 = new Product(101, "joyy", "", 99);
