@@ -1,10 +1,5 @@
 package lesson4.file_storage;
 
-import lesson4.file_storage.dao.FileDAO;
-import lesson4.file_storage.dao.StorageDAO;
-import lesson4.file_storage.model.File;
-import lesson4.file_storage.model.Storage;
-
 public class Demo {
     public static void main(String[] args) throws Exception{
         Controller controller = new Controller();

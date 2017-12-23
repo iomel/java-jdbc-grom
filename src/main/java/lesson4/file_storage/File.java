@@ -1,4 +1,4 @@
-package lesson4.file_storage.model;
+package lesson4.file_storage;
 
 public class File {
 

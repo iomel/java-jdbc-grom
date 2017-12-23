@@ -1,6 +1,4 @@
-package lesson4.file_storage.dao;
-
-import lesson4.file_storage.model.File;
+package lesson4.file_storage;
 
 import java.sql.*;
 import java.util.ArrayList;

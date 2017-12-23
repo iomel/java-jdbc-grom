@@ -1,7 +1,4 @@
-package lesson4.file_storage.dao;
-
-import lesson4.file_storage.model.File;
-import lesson4.file_storage.model.Storage;
+package lesson4.file_storage;
 
 import java.sql.*;
 
