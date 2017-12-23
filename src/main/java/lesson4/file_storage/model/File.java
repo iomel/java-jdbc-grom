@@ -64,6 +64,7 @@ public class File {
                 ", name='" + name + '\'' +
                 ", format='" + format + '\'' +
                 ", size=" + size +
+                ", storageId=" + storageId +
                 '}';
     }
 

@@ -4,8 +4,6 @@ import lesson4.file_storage.model.File;
 import lesson4.file_storage.model.Storage;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class StorageDAO {
 
@@ -24,28 +22,15 @@ public class StorageDAO {
     }
 
     private Storage save(Connection connection, Storage storage) throws SQLException {
-        try(PreparedStatement statementStr = connection.prepareStatement("INSERT INTO STORAGES VALUES (?, ?, ?, ?, ?)");
+        try(PreparedStatement statementStr = connection.prepareStatement("INSERT INTO STORAGES VALUES (?, ?, ?, ?)");
             PreparedStatement statementFile = connection.prepareStatement("INSERT INTO FILES VALUES (?, ?, ?, ?, ?)")) {
             connection.setAutoCommit(false);
-            statementStr.setLong(1, storage.getId());
-            statementStr.setString(2, storage.getFormats());
-            statementStr.setString(3,storage.getStorageCountry());
-            statementStr.setLong(4, storage.getStorageSize());
-
-            for (File file : storage.getFiles()){
-                statementFile.setLong(1, file.getId());
-                statementFile.setString(2, file.getName());
-                statementFile.setString(3, file.getFormat());
-                statementFile.setLong(4, file.getSize());
-                statementFile.setLong(5,file.getId());
-                int resultFile = statementFile.executeUpdate();
-            }
-            int result = statementStr.executeUpdate();
-
-            System.out.println("Save was finished with result " + result);
+            storageStatementPrepare(statementStr, storage);
+            if(storage.getFiles() != null)
+                fileStatementPrepare(statementFile, storage.getFiles());
             connection.commit();
         } catch (SQLException e) {
-            System.err.println("Something went wrong");
+            System.err.println(e.getMessage() + "Couldn't be saved to Storage ID: " + storage.getId());
             e.printStackTrace();
             connection.rollback();
         }
@@ -56,94 +41,43 @@ public class StorageDAO {
         try(Connection connection = getConnection()){
             update(connection, storage);
         } catch (SQLException e) {
-            System.err.println("Something went wrong");
+            System.err.println(e.getMessage() + "Couldn't be updated Storage ID: " + storage.getId());
             e.printStackTrace();
         }
         return storage;
     }
     private Storage update (Connection connection, Storage storage) throws SQLException {
-        try(PreparedStatement statementStr = connection.prepareStatement("UPDATE STORAGES SET ?, ?, ?, ? WHERE STORAGE_ID = ?");
-            PreparedStatement statementFile = connection.prepareStatement("UPDATE FILES SET ?, ?, ?, ?, ? WHERE FILE_ID = ?")) {
+        try(PreparedStatement statementStr = connection.prepareStatement(
+                    "UPDATE STORAGES SET STORAGE_ID = ?, FORMATS = ?, COUNTRY = ?, STORAGE_SIZE = ? WHERE STORAGE_ID = ?");
+            PreparedStatement statementFile = connection.prepareStatement(
+                    "UPDATE FILES " +
+                            "SET FILE_ID = ?, FILE_NAME = ?, FORMAT = ?, FILE_SIZE = ?, STORAGE_ID = ? " +
+                            "WHERE FILE_ID = ?")) {
             connection.setAutoCommit(false);
-            statementStr.setLong(1, storage.getId());
-            statementStr.setString(2, storage.getFormats());
-            statementStr.setString(3,storage.getStorageCountry());
-            statementStr.setLong(4, storage.getStorageSize());
-
-            for (File file : storage.getFiles()){
-                statementFile.setLong(1, file.getId());
-                statementFile.setString(2, file.getName());
-                statementFile.setString(3, file.getFormat());
-                statementFile.setLong(4, file.getSize());
-                statementFile.setLong(5,file.getId());
-                int resultFile = statementFile.executeUpdate();
-            }
-
-            int result = statementStr.executeUpdate();
-            System.out.println("Update was finished with result " + result);
+            storageStatementPrepare(statementStr, storage);
+            if(storage.getFiles() != null)
+                fileStatementPrepare(statementFile, storage.getFiles());
             connection.commit();
         } catch (SQLException e) {
-            System.err.println("Something went wrong");
+            System.err.println("Issue with storage ID: " + storage.getId());
             e.printStackTrace();
             connection.rollback();
         }
         return storage;
     }
 
-    public List<Storage> update (List<Storage> storages) throws Exception{
-        try(Connection connection = getConnection()){
-            update(connection, storages);
-        } catch (SQLException e) {
-            System.err.println("Something went wrong");
-            e.printStackTrace();
-        }
-        return storages;
-    }
-    private List<Storage> update (Connection connection, List<Storage> storages) throws SQLException {
-        try(PreparedStatement statementStr = connection.prepareStatement("UPDATE STORAGES SET ?, ?, ?, ? WHERE STORAGE_ID = ?");
-            PreparedStatement statementFile = connection.prepareStatement("UPDATE FILES SET ?, ?, ?, ?, ? WHERE FILE_ID = ?")) {
-            connection.setAutoCommit(false);
-            for(Storage storage : storages) {
-                statementStr.setLong(1, storage.getId());
-                statementStr.setString(2, storage.getFormats());
-                statementStr.setString(3, storage.getStorageCountry());
-                statementStr.setLong(4, storage.getStorageSize());
-
-                for (File file : storage.getFiles()) {
-                    statementFile.setLong(1, file.getId());
-                    statementFile.setString(2, file.getName());
-                    statementFile.setString(3, file.getFormat());
-                    statementFile.setLong(4, file.getSize());
-                    statementFile.setLong(5, file.getId());
-                    int resultFile = statementFile.executeUpdate();
-                }
-                int result = statementStr.executeUpdate();
-                System.out.println("Update was finished with result " + result);
-            }
-            connection.commit();
-        } catch (SQLException e) {
-            System.err.println("Something went wrong");
-            e.printStackTrace();
-            connection.rollback();
-        }
-        return storages;
-    }
-
     public void delete (long id){
-        try(Connection connection = getConnection();
-            PreparedStatement statement = connection.prepareStatement("DELETE FROM STORAGES WHERE FILE_ID = ?")) {
-            statement.setLong(1, id);
-            int result = statement.executeUpdate();
+        try(Connection connection = getConnection()){
+            delete(connection, id);
         } catch (SQLException e) {
-            System.err.println("Something went wrong");
+            System.err.println("Issue with storage ID: " + id);
             e.printStackTrace();
         }
     }
 
     private void delete (Connection connection, long id) throws SQLException{
-
         try(PreparedStatement statementStr = connection.prepareStatement("DELETE FROM STORAGES WHERE STORAGE_ID = ?");
-            PreparedStatement statementFile = connection.prepareStatement("DELETE FROM FILES WHERE STORAGE_ID = ?")) {
+            PreparedStatement statementFile = connection.prepareStatement("UPDATE FILES SET STORAGE_ID = 0 WHERE STORAGE_ID = ?")) {
             connection.setAutoCommit(false);
             statementStr.setLong(1, id);
             statementFile.setLong(1, id);
@@ -151,7 +85,7 @@ public class StorageDAO {
             int resultFile = statementFile.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
-            System.err.println("Something went wrong");
+            System.err.println("Issue with storage ID: " + id);
             e.printStackTrace();
             connection.rollback();
         }
@@ -174,6 +108,35 @@ public class StorageDAO {
             e.printStackTrace();
         }
         return foundObject;
+    }
+
+    private void fileStatementPrepare(PreparedStatement statement, File[] files) throws SQLException {
+        long fileID = 0;
+        try {
+            for (File file : files) {
+                statement.setLong(1, file.getId());
+                statement.setString(2, file.getName());
+                statement.setString(3, file.getFormat());
+                statement.setLong(4, file.getSize());
+                statement.setLong(5, file.getId());
+                fileID = file.getId();
+                int resultFile = statement.executeUpdate();
+            }
+        } catch (SQLException e){
+            throw new SQLException(e.getMessage() + " FileID: " + fileID );
+        }
+    }
+
+    private void storageStatementPrepare(PreparedStatement statement, Storage storage) throws SQLException {
+        try {
+            statement.setLong(1, storage.getId());
+            statement.setString(2, storage.getFormats());
+            statement.setString(3,storage.getStorageCountry());
+            statement.setLong(4, storage.getStorageSize());
+            int result = statement.executeUpdate();
+        } catch (SQLException e){
+            throw new SQLException();
+        }
     }
 
     private Connection getConnection()throws SQLException {
