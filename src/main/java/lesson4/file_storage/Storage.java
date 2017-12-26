@@ -45,6 +45,17 @@ public class Storage {
         return formats.substring(1);
     }
 
+    public long getFreeSpace(){
+        return storageSize - getUsedSpace();
+    }
+
+    public long getUsedSpace(){
+        long usedSpace = 0;
+        for(File file : files)
+            usedSpace += file.getSize();
+        return usedSpace;
+    }
+
     public String getStorageCountry() {
         return storageCountry;
     }

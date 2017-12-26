@@ -10,10 +10,11 @@ public class StorageDAO {
 
     public Storage save (Storage storage) throws Exception {
         try(Connection connection = getConnection()){
+            if(findById(storage.getId()) != null)
+                throw new Exception("Can't save storage - duplicated ID:" + storage.getId());
             save(connection, storage);
         } catch (SQLException e) {
-            System.err.println("Something went wrong");
-            e.printStackTrace();
+            throw new SQLException(e.getMessage() + " Storgae ID:" + storage.getId());
         }
         return storage;
     }
@@ -27,9 +28,8 @@ public class StorageDAO {
                 fileStatementPrepare(statementFile, storage.getFiles());
             connection.commit();
         } catch (SQLException e) {
-            System.err.println(e.getMessage() + "Couldn't be saved to Storage ID: " + storage.getId());
-            e.printStackTrace();
             connection.rollback();
+            throw new SQLException(e.getMessage() + "Couldn't be saved to Storage ID: " + storage.getId());
         }
         return storage;
     }
@@ -38,8 +38,7 @@ public class StorageDAO {
         try(Connection connection = getConnection()){
             update(connection, storage);
         } catch (SQLException e) {
-            System.err.println(e.getMessage() + "Couldn't be updated Storage ID: " + storage.getId());
-            e.printStackTrace();
+            throw new SQLException(e.getMessage() + "Couldn't be updated Storage ID: " + storage.getId());
         }
         return storage;
     }
@@ -56,39 +55,26 @@ public class StorageDAO {
                 fileStatementPrepare(statementFile, storage.getFiles());
             connection.commit();
         } catch (SQLException e) {
-            System.err.println("Issue with storage ID: " + storage.getId());
-            e.printStackTrace();
             connection.rollback();
+            throw new SQLException( e.getMessage() + " Issue with storage ID: " + storage.getId());
         }
         return storage;
     }
 
-    public void delete (long id){
-        try(Connection connection = getConnection()){
-            delete(connection, id);
-        } catch (SQLException e) {
-            System.err.println("Issue with storage ID: " + id);
-            e.printStackTrace();
-        }
-    }
-
-    private void delete (Connection connection, long id) throws SQLException{
-        try(PreparedStatement statementStr = connection.prepareStatement("DELETE FROM STORAGES WHERE STORAGE_ID = ?");
-            PreparedStatement statementFile = connection.prepareStatement("UPDATE FILES SET STORAGE_ID = 0 WHERE STORAGE_ID = ?")) {
-            connection.setAutoCommit(false);
+    public void delete (long id) throws Exception{
+        try(Connection connection = getConnection();
+            PreparedStatement statementStr = connection.prepareStatement("DELETE FROM STORAGES WHERE STORAGE_ID = ?")){
+            if(findById(id).getFiles().length > 0)
+                throw new Exception("Storage is not empty - can't delete!");
             statementStr.setLong(1, id);
-            statementFile.setLong(1, id);
             int resultStr = statementStr.executeUpdate();
-            int resultFile = statementFile.executeUpdate();
-            connection.commit();
+
         } catch (SQLException e) {
-            System.err.println("Issue with storage ID: " + id);
-            e.printStackTrace();
-            connection.rollback();
+            throw new SQLException( e.getMessage() + "Issue with storage ID: " + id);
         }
     }
 
-    public Storage findById(long id){
+    public Storage findById(long id) throws SQLException{
         Storage foundObject = null;
         try(Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement("SELECT * FROM STORAGES WHERE STORAGE_ID = ?")) {
@@ -101,8 +87,7 @@ public class StorageDAO {
             File[] files = new FileDAO().findByStorageId(id);
             foundObject.setFiles(files);
         } catch (SQLException e) {
-            System.err.println("Something went wrong");
-            e.printStackTrace();
+            throw new SQLException( e.getMessage() + "Issue with searching storage by ID: " + id);
         }
         return foundObject;
     }

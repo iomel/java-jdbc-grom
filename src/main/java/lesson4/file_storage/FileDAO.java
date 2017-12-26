@@ -9,8 +9,13 @@ public class FileDAO {
     private static final String PASS = "AWS_Admin";
 
     public File save (File file) throws Exception{
+
+        if(findById(file.getId()) != null)
+            throw new Exception("Can't save file - duplicated ID: " + file.getId());
+
         try(Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement("INSERT INTO FILES VALUES (?, ?, ?, ?, ?)")) {
+
             statement.setLong(1, file.getId());
             statement.setString(2, file.getName());
             statement.setString(3,file.getFormat());
@@ -19,8 +24,7 @@ public class FileDAO {
 
             int result = statement.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Issue to save File ID: " + file.getId());
-            e.printStackTrace();
+            throw  new SQLException( e.getMessage() + " Issue to save File ID: " + file.getId());
         }
         return file;
     }
@@ -41,8 +45,7 @@ public class FileDAO {
 
             int result = statement.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Can't update file ID: " + file.getId());
-            e.printStackTrace();
+            throw  new SQLException( e.getMessage() + "Can't update file ID: " + file.getId());
         }
 
         return file;
@@ -52,12 +55,11 @@ public class FileDAO {
         try(Connection connection = getConnection()){
             update(connection, files);
         } catch (SQLException e) {
-            System.err.println("Something went wrong");
-            e.printStackTrace();
+            throw  new SQLException( e.getMessage() + " Can't update files list!");
         }
     }
 
-    private void update(Connection connection, File[] files){
+    private void update(Connection connection, File[] files) throws SQLException{
         long fileId = 0;
         try( PreparedStatement statement = connection.prepareStatement(
                 "UPDATE FILES " +
@@ -74,23 +76,21 @@ public class FileDAO {
                 int result = statement.executeUpdate();
             }
         } catch (SQLException e) {
-            System.err.println("Issue to update File ID:" + fileId);
-            e.printStackTrace();
+            throw  new SQLException( e.getMessage() + "Issue to update File ID:" + fileId);
         }
     }
 
-    public void delete (long id){
+    public void delete (long id) throws SQLException{
         try(Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement("DELETE FROM FILES WHERE FILE_ID = ?")) {
             statement.setLong(1, id);
             int result = statement.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Something went wrong");
-            e.printStackTrace();
+            throw  new SQLException( e.getMessage() + " Issue with deleting file ID: " + id);
         }
     }
 
-    public File findById(long id){
+    public File findById(long id) throws SQLException{
         File foundObject = null;
         try(Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement("SELECT * FROM FILES WHERE FILE_ID = ?")) {
@@ -107,13 +107,11 @@ public class FileDAO {
                 foundObject.setStorageId(storageId);
             }
         } catch (SQLException e) {
-            System.err.println("Something went wrong");
-            e.printStackTrace();
-        }
+            throw  new SQLException( e.getMessage() + "Issues with searching file by ID: " + id);        }
         return foundObject;
     }
 
-    public File[] findByStorageId(long id){
+    public File[] findByStorageId(long id) throws SQLException{
         ArrayList<File> filesList = new ArrayList<>();
         try(Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement("SELECT * FROM FILES WHERE STORAGE_ID = ?")) {
@@ -131,8 +129,7 @@ public class FileDAO {
                 filesList.add(foundObject);
             }
         } catch (SQLException e) {
-            System.err.println("Something went wrong with file from storage ID: " + id);
-            e.printStackTrace();
+            throw  new SQLException( e.getMessage() + "Something went wrong with file from storage ID: " + id);
         }
         File[] files = new File[filesList.size()];
         return filesList.toArray(files);
