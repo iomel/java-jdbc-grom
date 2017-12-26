@@ -8,79 +8,48 @@ public class Controller {
 
     public void put(Storage storage, File file) throws Exception
     {
-        nullAbsentCheck(storage, file);
-        isEnoughSpace(storage, file);
-        formatsAllowed(storage, file);
+        if (storage != null && file != null) {
+            storage = storageDAO.findById(storage.getId());
 
-        if(hasFile(storage, file))
-            throw new Exception("There is such file in the storage: " + storage.getId() + "    file: " + file.getId());
-        file.setStorageId(storage.getId());
-        if(fileDAO.findById(file.getId()) != null)
-            fileDAO.update(file);
-        else
-            fileDAO.save(file);
-//        if required to save storage object state - use code below:
-//
-//        File[] oldFiles = storage.getFiles();
-//        File[] newFiles = Arrays.copyOf(oldFiles, oldFiles.length+1);
-//        newFiles[newFiles.length-1] = file;
-//        storage.setFiles(newFiles);
-//
-//        storageDAO.update(storage);
+            isEnoughSpace(storage, file);
+            formatsAllowed(storage, file);
+            file.setStorageId(storage.getId());
+
+            if (fileDAO.findById(file.getId()) != null)
+                fileDAO.update(file);
+            else
+                fileDAO.save(file);
+        }
     }
 
     public void delete (Storage storage, File file) throws Exception
     {
-        nullAbsentCheck(storage, file);
-
-        if(!hasFile(storage, file))
-            throw new Exception("There is no such file in the storage: " + storage.getId() + "    file: " + file.getId());
-
-        file.setStorageId(0);
-        fileDAO.update(file);
-
-//        if required to save storage object state - use code below:
-//
-//        File[] oldFiles = storage.getFiles();
-//        File[] newFiles = new File[oldFiles.length-1];
-//        int index = 0;
-//        for (File f : oldFiles)
-//            if (f.getId() != file.getId())
-//                newFiles[index++] = f;
-//        storage.setFiles(newFiles);
-//        storageDAO.update(storage);
+        if (storage != null && file != null && fileDAO.findById(file.getId()).getStorageId() == storage.getId()) {
+            file.setStorageId(0);
+            fileDAO.update(file);
+        }
     }
 
     public void transferAll (Storage storageFrom, Storage storageTo) throws Exception {
-        nullCheckStorages(storageFrom, storageTo);
-        hasSpaceForTransfer(storageFrom,storageTo);
-        includeFormats(storageFrom, storageTo);
-        idDuplicate(storageFrom, storageTo);
+        if (storageFrom != null && storageTo != null) {
+            storageFrom = storageDAO.findById(storageFrom.getId());
+            storageTo = storageDAO.findById(storageTo.getId());
 
-        File[] filesToTransfer = storageFrom.getFiles();
-        for(File file : filesToTransfer)
-            file.setStorageId(storageTo.getId());
-        fileDAO.update(filesToTransfer);
+            hasSpaceForTransfer(storageFrom, storageTo);
+            includeFormats(storageFrom, storageTo);
+
+            File[] filesToTransfer = storageFrom.getFiles();
+            for (File file : filesToTransfer)
+                file.setStorageId(storageTo.getId());
+            fileDAO.update(filesToTransfer);
+        }
     }
 
     public void transferFile (Storage storageFrom, Storage storageTo, long id) throws Exception {
-        nullCheckStorages(storageFrom, storageTo);
-
-        File fileToTransfer = fileDAO.findById(id);
-        fileToTransfer.setStorageId(storageTo.getId());
-        fileDAO.update(fileToTransfer);
+        if (storageTo != null) {
+            put(storageTo, fileDAO.findById(id));
+        }
     }
-
-    private void nullCheckStorages (Storage storageFrom, Storage storageTo) throws Exception {
-        if (storageFrom == null || storageFrom.getFiles() == null
-                || storageTo == null
-                || storageFrom.getId() == storageTo.getId()
-                || storageFrom.getFormatsSupported() == null
-                || storageTo.getFormatsSupported() == null )
-            throw new Exception("Transfer stopped - some data is NULL. Source storage:" + storageFrom.getId()
-                    + "Destination storage:" + storageTo.getId());
-    }
-
 
     private void includeFormats (Storage storageFrom, Storage storageTo)throws Exception{
         for (File sourceFile : storageFrom.getFiles())
@@ -105,25 +74,6 @@ public class Controller {
                     + " Destination storage:" + storageTo.getId());
     }
 
-    private void idDuplicate (Storage storageFrom, Storage storageTo) throws Exception {
-        for (File sourceFile : storageFrom.getFiles()) {
-            if (sourceFile != null && !sourceFile.isEmpty())
-                if (hasFile(storageTo, sourceFile))
-                    throw new Exception("Duplicate files. Storage1 id:" + storageFrom.getId() + "    Storage2 id: " + storageTo.getId());
-        }
-    }
-
-    private void nullAbsentCheck (Storage storage, File file) throws Exception
-    {
-        if (storage == null
-//                || storage.getFiles() == null
-                || storage.getFormatsSupported() == null
-                || file == null
-                || file.isEmpty()
-                || file.getFormat() == null)
-            throw new Exception("Put operation break - some data is NULL. Storage id:" + storage.getId() + "    file ID: " + file.getId());
-    }
-
     private boolean formatsAllowed(Storage storage, File file) throws Exception
     {
         for (String format : storage.getFormatsSupported())
@@ -142,15 +92,6 @@ public class Controller {
 
         if (totalSize < file.getSize())
             throw new Exception("Not enough free space in the storage: " + storage.getId() + "    file ID: " + file.getId());
-    }
-
-    public boolean hasFile (Storage storage, File file)
-    {
-        if(storage.getFiles() != null)
-            for (File f : storage.getFiles())
-                if (f != null && f.getId() == file.getId())
-                    return true;
-        return false;
     }
 
 }
