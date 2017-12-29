@@ -25,9 +25,13 @@ public class Controller {
 
     public void delete (Storage storage, File file) throws Exception
     {
-        if (storage != null && file != null && fileDAO.findById(file.getId()).getStorageId() == storage.getId()) {
-            file.setStorageId(0);
-            fileDAO.update(file);
+        if(storage != null && file != null) {
+            file = fileDAO.findById(file.getId());
+
+            if (file != null && file.getStorageId() == storage.getId()) {
+                file.setStorageId(0);
+                fileDAO.update(file);
+            }
         }
     }
 

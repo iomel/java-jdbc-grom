@@ -90,12 +90,14 @@ public class FileDAO {
         }
     }
 
-    public File findById(long id) throws SQLException{
+    public File findById(long id) throws Exception{
         File foundObject = null;
         try(Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement("SELECT * FROM FILES WHERE FILE_ID = ?")) {
             statement.setLong(1, id);
             ResultSet result = statement.executeQuery();
+            if(!result.isBeforeFirst())
+                throw new Exception("File was not found! ID" + id);
             while (result.next()) {
                 long fileId = result.getLong(1);
                 String name = result.getString(2);

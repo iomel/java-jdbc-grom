@@ -74,12 +74,14 @@ public class StorageDAO {
         }
     }
 
-    public Storage findById(long id) throws SQLException{
+    public Storage findById(long id) throws Exception{
         Storage foundObject = null;
         try(Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement("SELECT * FROM STORAGES WHERE STORAGE_ID = ?")) {
             statement.setLong(1, id);
             ResultSet result = statement.executeQuery();
+            if(!result.isBeforeFirst())
+                throw new Exception("Storage was not found! ID" + id);
             String[] formats = result.getString(2).split(",");
             String country = result.getString(3);
             long size = result.getLong(4);
