@@ -80,14 +80,14 @@ public class StorageDAO {
             PreparedStatement statement = connection.prepareStatement("SELECT * FROM STORAGES WHERE STORAGE_ID = ?")) {
             statement.setLong(1, id);
             ResultSet result = statement.executeQuery();
-            if(!result.isBeforeFirst())
-                throw new Exception("Storage was not found! ID" + id);
-            String[] formats = result.getString(2).split(",");
-            String country = result.getString(3);
-            long size = result.getLong(4);
-            foundObject = new Storage(id, formats, country, size);
-            File[] files = new FileDAO().findByStorageId(id);
-            foundObject.setFiles(files);
+            if(result.isBeforeFirst()) {
+                String[] formats = result.getString(2).split(",");
+                String country = result.getString(3);
+                long size = result.getLong(4);
+                foundObject = new Storage(id, formats, country, size);
+                File[] files = new FileDAO().findByStorageId(id);
+                foundObject.setFiles(files);
+            }
         } catch (SQLException e) {
             throw new SQLException( e.getMessage() + "Issue with searching storage by ID: " + id);
         }

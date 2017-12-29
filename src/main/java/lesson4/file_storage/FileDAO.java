@@ -29,6 +29,8 @@ public class FileDAO {
         return file;
     }
 
+
+
     public File update (File file) throws Exception {
         try(Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement(
@@ -65,6 +67,7 @@ public class FileDAO {
                 "UPDATE FILES " +
                         "SET FILE_ID = ?, FILE_NAME = ?, FORMAT = ?, FILE_SIZE = ?, STORAGE_ID = ? " +
                         "WHERE FILE_ID = ?")) {
+            connection.setAutoCommit(false);
             for(File file : files) {
                 statement.setLong(1, file.getId());
                 statement.setString(2, file.getName());
@@ -75,7 +78,9 @@ public class FileDAO {
                 fileId = file.getId();
                 int result = statement.executeUpdate();
             }
+            connection.commit();
         } catch (SQLException e) {
+            connection.rollback();
             throw  new SQLException( e.getMessage() + "Issue to update File ID:" + fileId);
         }
     }
@@ -96,18 +101,17 @@ public class FileDAO {
             PreparedStatement statement = connection.prepareStatement("SELECT * FROM FILES WHERE FILE_ID = ?")) {
             statement.setLong(1, id);
             ResultSet result = statement.executeQuery();
-            if(!result.isBeforeFirst())
-                throw new Exception("File was not found! ID" + id);
-            while (result.next()) {
-                long fileId = result.getLong(1);
-                String name = result.getString(2);
-                String format = result.getString(3);
-                long size = result.getLong(4);
-                long storageId = result.getLong(5);
+            if(result.isBeforeFirst())
+                while (result.next()) {
+                    long fileId = result.getLong(1);
+                    String name = result.getString(2);
+                    String format = result.getString(3);
+                    long size = result.getLong(4);
+                    long storageId = result.getLong(5);
 
-                foundObject = new File(fileId, name, format, size);
-                foundObject.setStorageId(storageId);
-            }
+                    foundObject = new File(fileId, name, format, size);
+                    foundObject.setStorageId(storageId);
+                }
         } catch (SQLException e) {
             throw  new SQLException( e.getMessage() + "Issues with searching file by ID: " + id);        }
         return foundObject;

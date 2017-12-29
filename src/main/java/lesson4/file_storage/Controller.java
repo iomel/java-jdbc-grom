@@ -28,7 +28,7 @@ public class Controller {
         if(storage != null && file != null) {
             file = fileDAO.findById(file.getId());
 
-            if (file.getStorageId() == storage.getId()) {
+            if (file != null && file.getStorageId() == storage.getId()) {
                 file.setStorageId(0);
                 fileDAO.update(file);
             }
