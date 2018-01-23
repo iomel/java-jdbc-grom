@@ -1,0 +1,19 @@
+<?xml version = "1.0" encoding = "utf-8"?>
+<!DOCTYPE hibernate-configuration SYSTEM
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+
+        <property name = "hibernate.dialect"> org.hibernate.dialect.Oracle12cDialect </property>
+        <property name = "hibernate.connection.driver_class"> oracle.jdbc.driver.OracleDriver </property>
+        <property name = "hibernate.connection.url">
+            jdbc:oracle:thin:@gromcode-lessons.c88oq4boivpv.eu-west-2.rds.amazonaws.com:1521:ORCL</property>
+        <property name = "hibernate.connection.username"> main </property>
+        <property name = "hibernate.connection.password"> AWS_Admin </property>
+
+        <!-- List of XML mapping files -->
+        <mapping class="lesson5.Product" />
+        <mapping resource = "Product.hbm.xml"/>
+
+    </session-factory>
+</hibernate-configuration>
