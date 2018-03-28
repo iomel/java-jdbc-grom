@@ -5,7 +5,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
-import java.util.Iterator;
 import java.util.List;
 
 
@@ -14,28 +13,26 @@ public class ProductDAO {
 
     public ProductDAO() {
         factory = new org.hibernate.cfg.Configuration().configure().buildSessionFactory();
-
     }
 
+    public void closeCommection(){
+        factory.close();
+    }
     // CREATE
-    public Integer addProduct(String name, String description, Integer price){
+    public void addProduct(long id, String name, String description, Integer price){
         Session session = factory.openSession();
         Transaction transaction = null;
-        Integer productId = null;
-
         try {
             transaction = session.beginTransaction();
-            Product product = new Product(1243L, name, description, price);
-            productId = (Integer) session.save(product);
+            session.save(new Product(id, name, description, price));
             transaction.commit();
         } catch (HibernateException e) {
-            if (transaction != null)
-                transaction.rollback();
-            System.out.println(e.getMessage());
+            if (transaction != null) transaction.rollback();
+            e.printStackTrace();
         } finally {
             session.close();
         }
-        return productId;
+
     }
     // READ
     public void listProducts( ){
@@ -44,10 +41,10 @@ public class ProductDAO {
 
         try {
             transaction = session.beginTransaction();
-            List products = session.createQuery("FROM Product").list();
-            for (Iterator iterator = products.iterator(); iterator.hasNext();){
-                Product product = (Product) iterator.next();
-                System.out.print("Name: " + product.getName());
+            List products = session.createQuery("from Product").list();
+            for (Product product : (List<Product>)products){
+                System.out.print("ID::" + product.getId());
+                System.out.print("  Name: " + product.getName());
                 System.out.print("  Description: " + product.getDescription());
                 System.out.println("  Price: " + product.getPrice());
             }
@@ -60,6 +57,39 @@ public class ProductDAO {
         }
     }
     // DELETE
+    public void deleteById(long id){
+        Session session = factory.openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            Product product = new Product();
+            product.setId(id);
+            session.delete(product);
+            transaction.commit();
+        } catch (HibernateException e) {
+            if (transaction != null) transaction.rollback();
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+    }
+
     // UPDATE
+    public void updateProduct(Product product){
+        Session session = factory.openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+            session.merge(product);
+            transaction.commit();
+        } catch (HibernateException e) {
+            if (transaction != null) transaction.rollback();
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+    }
 
 }

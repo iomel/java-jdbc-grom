@@ -10,7 +10,7 @@
             This class contains the product detail.
         </meta>
 
-        <id name = "id" type = "int" column = "id">
+        <id name = "id" type = "long" column = "id">
         </id>
 
         <property name = "name" column = "name" type = "string"/>
