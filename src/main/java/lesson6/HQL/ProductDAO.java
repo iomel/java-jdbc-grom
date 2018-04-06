@@ -1,6 +1,5 @@
 package lesson6.HQL;
 
-import lesson6.Product;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;

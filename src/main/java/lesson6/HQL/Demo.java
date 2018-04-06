@@ -1,8 +1,5 @@
 package lesson6.HQL;
 
-
-import lesson6.Product;
-
 public class Demo {
     public static void main(String[] args) throws Exception {
         ProductDAO productDAO = new ProductDAO();
