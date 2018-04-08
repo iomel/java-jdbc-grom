@@ -13,6 +13,7 @@
         <!-- List of XML mapping files -->
         <mapping class="lesson5.Product" />
         <mapping class="lesson6.Product" />
+        <mapping class="lesson6.NSQL.Product" />
         <mapping resource = "Product.hbm.xml"/>
 
     </session-factory>
