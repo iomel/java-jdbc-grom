@@ -6,41 +6,31 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class ProductDAO {
     private static SessionFactory factory;
-    private String SELECT_BY_ID = "from Product where id = :id";
-    private String SELECT_BY_NAME = "from Product where name = :name";
-    private String SELECT_BY_CONTAIN_NAME = "from Product where name like :name";
-    private String SELECT_BY_NAME_ASC_SORT = "from Product where name = :name order by name asc";
-    private String SELECT_BY_NAME_DESC_SORT = "from Product where name = :name order by name desc";
-    private String SELECT_BY_PRICE_DELTA = "from Product where price between :mDelta and :pDelta";
-    private String SELECT_BY_PRICE_DELTA_DESC_SORT = "from Product where price between :mDelta and :pDelta order by price desc";
+    private String SELECT_BY_ID = "FROM Product WHERE ID = :ID";
+    private String SELECT_BY_NAME = "FROM Product WHERE NAME = :NAME";
+    private String SELECT_BY_CONTAIN_NAME = "FROM Product WHERE NAME LIKE :NAME";
+    private String SELECT_BY_NAME_ASC_SORT = "FROM Product WHERE NAME = :NAME ORDER BY NAME ASC";
+    private String SELECT_BY_NAME_DESC_SORT = "FROM Product WHERE NAME = :NAME ORDER BY NAME DESC";
+    private String SELECT_BY_PRICE_DELTA = "FROM Product WHERE PRICE BETWEEN :MDELTA AND :PDELTA";
+    private String SELECT_BY_PRICE_DELTA_DESC_SORT = "FROM Product WHERE PRICE BETWEEN :MDELTA AND :PDELTA ORDER BY PRICE DESC";
 
     public ProductDAO() {
         factory = new Configuration().configure().buildSessionFactory();
     }
 
-    private List<Product> findByOneParam (String sqlQuery, String paramName, Object paramValue){
+    private List<Product> findByParam (String sqlQuery, HashMap<String, Object> params){
         List<Product> list = null;
         try (Session session = factory.openSession()) {
             Query query = session.createQuery(sqlQuery);
-            query.setParameter(paramName, paramValue);
-            list = query.list();
-        } catch (HibernateException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    private List<Product> findByTwoParam (String sqlQuery, String pName1, Object pValue1, String pName2, Object pValue2){
-        List<Product> list = null;
-        try (Session session = factory.openSession()) {
-            Query query = session.createQuery(sqlQuery);
-            query.setParameter(pName1, pValue1);
-            query.setParameter(pName2, pValue2);
+            for(Map.Entry<String, Object> param : params.entrySet())
+                query.setParameter(param.getKey(), param.getValue());
             list = query.list();
         } catch (HibernateException e) {
             e.printStackTrace();
@@ -49,37 +39,48 @@ public class ProductDAO {
     }
 
     public Product findById(Long id) {
-        return findByOneParam(SELECT_BY_ID, "id", id).get(0);
+        HashMap<String, Object> paramMap = new HashMap<>();
+        paramMap.put("ID", id);
+        return findByParam(SELECT_BY_ID, paramMap).get(0);
+
     }
 
     public List<Product> findByName(String name) {
-        return findByOneParam(SELECT_BY_NAME, "name", name);
+        HashMap<String, Object> paramMap = new HashMap<>();
+        paramMap.put("NAME", name);
+        return findByParam(SELECT_BY_NAME, paramMap);
     }
 
     public List<Product> findByContainedName(String name){
-        return findByOneParam(SELECT_BY_CONTAIN_NAME, "name", "%" + name + "%");
+        HashMap<String, Object> paramMap = new HashMap<>();
+        paramMap.put("NAME", "%" + name + "%");
+        return findByParam(SELECT_BY_CONTAIN_NAME, paramMap);
     }
 
     public List<Product> findByPrice(int price, int delta){
-        return findByTwoParam(SELECT_BY_PRICE_DELTA,
-                "mDelta", price - delta,
-                "pDelta", price + delta);
+        HashMap<String, Object> paramMap = new HashMap<>();
+        paramMap.put("MDELTA", price - delta);
+        paramMap.put("PDELTA", price + delta);
+        return findByParam(SELECT_BY_PRICE_DELTA, paramMap);
     }
 
     public List<Product> findByNameSortedAsc(String name){
-        return findByOneParam(SELECT_BY_NAME_ASC_SORT, "name", name);
+        HashMap<String, Object> paramMap = new HashMap<>();
+        paramMap.put("NAME", name);
+        return findByParam(SELECT_BY_NAME_ASC_SORT, paramMap);
     }
 
     public List<Product> findByNameSortedDesc(String name){
-        return findByOneParam(SELECT_BY_NAME_DESC_SORT, "name", name);
+        HashMap<String, Object> paramMap = new HashMap<>();
+        paramMap.put("NAME", name);
+        return findByParam(SELECT_BY_NAME_DESC_SORT, paramMap);
     }
 
     public List<Product> findByPriceSortedDesc(int price, int delta) {
-        return findByTwoParam(SELECT_BY_PRICE_DELTA_DESC_SORT,
-                "mDelta", price - delta,
-                "pDelta", price + delta);
+        HashMap<String, Object> paramMap = new HashMap<>();
+        paramMap.put("MDELTA", price - delta);
+        paramMap.put("PDELTA", price + delta);
+        return findByParam(SELECT_BY_PRICE_DELTA_DESC_SORT, paramMap);
     }
-
-
 
 }
