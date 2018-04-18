@@ -15,6 +15,8 @@
         <mapping class="lesson6.Product" />
         <mapping class="lesson6.HQL.Product" />
         <mapping class="lesson6.NSQL.Product" />
+        <mapping class="lesson7.Room" />
+        <mapping class="lesson7.Hotel" />
         <mapping resource = "Product.hbm.xml"/>
 
     </session-factory>
