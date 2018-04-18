@@ -1,10 +1,7 @@
 package lesson7;
 
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-
 import java.util.HashMap;
+import java.util.List;
 
 public class RoomDAO extends GeneralDAO<Room> {
 
@@ -18,7 +15,8 @@ public class RoomDAO extends GeneralDAO<Room> {
     public Room findById(Long id) {
         HashMap<String, Object> paramMap = new HashMap<>();
         paramMap.put("ID", id);
-        return findByParam(SELECT_BY_ID, paramMap).get(0);
+        List<Room> result = findByParam(SELECT_BY_ID, paramMap);
+        return result.size() > 0 ? result.get(0) : new Room();
     }
 
 }

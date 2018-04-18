@@ -1,6 +1,7 @@
 package lesson7;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class HotelDAO extends GeneralDAO<Hotel> {
 
@@ -14,7 +15,8 @@ public class HotelDAO extends GeneralDAO<Hotel> {
     public Hotel findById(Long id) {
         HashMap<String, Object> paramMap = new HashMap<>();
         paramMap.put("ID", id);
-        return findByParam(SELECT_BY_ID, paramMap).get(0);
+        List<Hotel> result = findByParam(SELECT_BY_ID, paramMap);
+        return result.size() > 0 ? result.get(0) : new Hotel();
     }
 
 }
