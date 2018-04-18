@@ -16,7 +16,7 @@ public class Demo {
         r1.setHotel(h1);
 
         roomDAO.save(r1);
-
+        roomDAO.delete(47);
         System.out.println("DONE");
         System.exit(0);
     }

@@ -2,28 +2,23 @@ package lesson7;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 
-public class RoomDAO {
-    private static SessionFactory factory;
+import java.util.HashMap;
 
-    public RoomDAO() {
-        factory = new Configuration().configure().buildSessionFactory();
+public class RoomDAO extends GeneralDAO<Room> {
+
+    private String SELECT_BY_ID = "FROM Room WHERE R_ID = :ID";
+
+    // delete
+    public void delete(long id) {
+        delete(findById(id));
     }
 
-    // save
-    public void save(Room room) {
-        Transaction transaction = null;
-        try (Session session = factory.openSession()) {
-            transaction = session.beginTransaction();
-            session.save(room);
-            transaction.commit();
-        } catch (HibernateException e) {
-            if (transaction != null) transaction.rollback();
-            e.printStackTrace();
-        }
+    public Room findById(Long id) {
+        HashMap<String, Object> paramMap = new HashMap<>();
+        paramMap.put("ID", id);
+        return findByParam(SELECT_BY_ID, paramMap).get(0);
     }
 
 }
