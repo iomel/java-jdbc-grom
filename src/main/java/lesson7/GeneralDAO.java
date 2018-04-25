@@ -34,11 +34,14 @@ public class GeneralDAO <T> {
     }
 
     // Delete
-    public void delete(T t) {
+    public void deleteByParam(String sqlQuery, HashMap<String, Object> params) {
         Transaction transaction = null;
         try (Session session = factory.openSession()) {
             transaction = session.beginTransaction();
-            session.delete(t);
+            Query query = session.createQuery(sqlQuery);
+            for (Map.Entry<String, Object> param : params.entrySet())
+                query.setParameter(param.getKey(), param.getValue());
+            query.executeUpdate();
             transaction.commit();
         } catch (HibernateException e) {
             if (transaction != null) transaction.rollback();
